@@ -123,9 +123,6 @@ def Marathon():
             sorular.pop(soru)
         print(f"Verdiğiniz doğru cevap sayısı = {dogruSayisi}")
 
-
-sorulardf = pd.read_excel("QuizGame\soru\sorular.xlsx")
-print(sorulardf)
 WINDOW_WIDTH = 540
 WINDOW_HEIGHT = 960
 puan = 0
