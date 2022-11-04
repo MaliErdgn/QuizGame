@@ -129,7 +129,7 @@ def soruObj(x, y):
     drawText(screen, current, "black", answerBox_rectText, font, aa =True, bkg=None)
     şıklar.remove(current)
 
-def soruCevap():
+def soruCevap():  # TRYING TO MAKE THIS FUNCTION WORK IN A WHILE LOOP????
     global doğruCevap
     global yanlışCevap
 
