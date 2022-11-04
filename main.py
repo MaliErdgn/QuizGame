@@ -50,18 +50,6 @@ def sonuçlar():
     print (f"Toplam soru sayısı: {dogruSayisi + yanlışSayısı}")
     
 
-def soruSorma():
-    global dogruCevap
-    global sorular
-    global answer
-    global x
-    for x in range(0,soruSayısı):
-        print("sd")
-        # soru, dogruCevap = random.choice(list(sorular.items()))
-        # answer = input(f"{soru}? ")
-        # cevap()
-        # sorular.pop(soru)
-    sonuçlar()
 
 def cevap ():
     global yanlışSayısı
