@@ -1,6 +1,7 @@
 import pandas as pd
 import random
 import pygame
+import time
 
 questionNumber = 10
 WINDOW_WIDTH = 540
@@ -110,7 +111,7 @@ def soruObj(x, y):
     global answerBox_rect
     global answerBox_rectTrue
     boxsize = (225,150)
-    
+    time.sleep(3)
     current = random.choice(şıklar)
     if current == cevap:
         answerBox = pygame.image.load("QuizGame\photos\\answerbox.png").convert_alpha()
@@ -129,24 +130,28 @@ def soruObj(x, y):
     drawText(screen, current, "black", answerBox_rectText, font, aa =True, bkg=None)
     şıklar.remove(current)
 
-def soruCevap():  # TRYING TO MAKE THIS FUNCTION WORK IN A WHILE LOOP????
+def soruCevap():  # TRYING TO MAKE THIS FUNCTION WORK IN A WHILE LOOP???? crashes if you make a while loop here or in main func
     global doğruCevap
     global yanlışCevap
 
     mouse_pos = pygame.mouse.get_pos()
     doğruCevap = 0
     yanlışCevap = 0 
+    answered = False
 
-    print(mouse_pos)
-    if answerBox_rectTrue.collidepoint(mouse_pos) and pygame.mouse.get_pressed()[0] == 1 and clicked == False:
-        clicked = True
-        doğruCevap += 1
-        print(doğruCevap)
-    elif answerBox_rect.collidepoint(mouse_pos) and pygame.mouse.get_pressed()[0] == 1 and clicked == False:
-        clicked = True
-        yanlışCevap += 1
-    if pygame.mouse.get_pressed()[0] == 0:
-        clicked = False
+    while answered == False:
+        print(mouse_pos)
+        if answerBox_rectTrue.collidepoint(mouse_pos) and pygame.mouse.get_pressed()[0] == 1 and clicked == False:
+            clicked = True
+            answered = True
+            doğruCevap += 1
+            print(doğruCevap)
+        elif answerBox_rect.collidepoint(mouse_pos) and pygame.mouse.get_pressed()[0] == 1 and clicked == False:
+            clicked = True
+            answered = True
+            yanlışCevap += 1
+        if pygame.mouse.get_pressed()[0] == 0:
+            clicked = False
 
 def drawText(surface, text, color, rect, font, aa=False, bkg=None):
     rect = pygame.Rect(rect)
