@@ -95,7 +95,7 @@ def soruSorma(questionNumber):
             soruObj(20,700)
             soruObj(275,700)
 
-questionNumber = 10
+questionNumber = 10 #default amount of questions to be asked
 WINDOW_WIDTH = 540
 WINDOW_HEIGHT = 960 #screen size
 clicked = False
@@ -119,6 +119,9 @@ screen.blit(start_btn,start_btn_rect)
 pygame.font.init()
 mainmenu = True
 game = False
+answered = True
+doğruCevap = 0
+yanlışCevap = 0 
 while True:
     if mainmenu == True:
         for event in pygame.event.get():
@@ -143,27 +146,27 @@ while True:
                 exit()
 
 
-        soruSorma(questionNumber)
-        questionNumber -=1
         pygame.event.pump()
         mouse_pos = pygame.mouse.get_pos()
 
-        doğruCevap = 0
-        yanlışCevap = 0 
-        answered = False
-        while answered == False:    
+        if answered == False:
             if answerBox_rectTrue.collidepoint(mouse_pos) and pygame.mouse.get_pressed()[0] == 1 and clicked == False:
                 clicked = True
                 answered = True
                 doğruCevap += 1
-                print(doğruCevap)
+                print(f"Doğru. Doğru sayınız: {doğruCevap}")
             elif answerBox_rect.collidepoint(mouse_pos) and pygame.mouse.get_pressed()[0] == 1 and clicked == False:
                 clicked = True
                 answered = True
                 yanlışCevap += 1
+                print(f"Yanlış. Yanlış sayınız: {yanlışCevap}")
             if pygame.mouse.get_pressed()[0] == 0:
                 clicked = False
-        
+        if answered == True:
+            soruSorma(questionNumber)
+            if questionNumber > 0:
+                questionNumber -=1
+            answered = False
 
 
     pygame.display.update()
