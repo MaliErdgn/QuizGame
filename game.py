@@ -2,8 +2,11 @@ import pygame
 import pandas as pd
 import random
 
-def soruObj(x, y):
-    global answerBox_rect
+def soruObj(x, y, rectNo):
+    global answerBox_rect1
+    global answerBox_rect2
+    global answerBox_rect3
+    global answerBox_rect4
     global answerBox_rectTrue
     boxsize = (225,150)
     current = random.choice(şıklar)
@@ -13,15 +16,16 @@ def soruObj(x, y):
         answerBox_rectTrue = answerBox.get_rect(topleft = (x,y))
         answerBox_rectText = answerBox.get_rect(topleft = (x+5,y+5))
         screen.blit(answerBox,answerBox_rectTrue)
+
     else:
         answerBox = pygame.image.load("QuizGame\photos\\answerbox.png").convert_alpha()
         answerBox = pygame.transform.scale(questionBox, boxsize)
-        answerBox_rect = answerBox.get_rect(topleft = (x,y))
+        globals()["answerBox_rect" + str(rectNo)] = answerBox.get_rect(topleft = (x,y))
         answerBox_rectText = answerBox.get_rect(topleft = (x+5,y+5))
-        screen.blit(answerBox,answerBox_rect)
+        screen.blit(answerBox,(x,y))
 
 
-    drawText(screen, current, "black", answerBox_rectText, font, aa =True, bkg=None)
+    drawText(screen, current, "#0D1821", answerBox_rectText, font, aa =True, bkg=None)
     şıklar.remove(current)
 
 def drawText(surface, text, color, rect, font, aa=False, bkg=None):
@@ -90,10 +94,10 @@ def soruSorma(questionNumber):
             drawText(screen, soru, "black", questionBox_rectText, font, aa =True, bkg=None) #writing the question in screen
 
             şıklar = [cevap,yanlışCevap1,yanlışCevap2,yanlışCevap3]  #put choices in a list for randomness
-            soruObj(20,500)
-            soruObj(275,500)
-            soruObj(20,700)
-            soruObj(275,700)
+            soruObj(20,500,1)
+            soruObj(275,500,2)
+            soruObj(20,700,3)
+            soruObj(275,700,4)
 
 questionNumber = 10 #default amount of questions to be asked
 WINDOW_WIDTH = 540
@@ -155,7 +159,7 @@ while True:
                 answered = True
                 doğruCevap += 1
                 print(f"Doğru. Doğru sayınız: {doğruCevap}")
-            elif answerBox_rect.collidepoint(mouse_pos) and pygame.mouse.get_pressed()[0] == 1 and clicked == False:
+            elif (answerBox_rect1.collidepoint(mouse_pos) or answerBox_rect2.collidepoint(mouse_pos) or answerBox_rect3.collidepoint(mouse_pos) or answerBox_rect4.collidepoint(mouse_pos)) and pygame.mouse.get_pressed()[0] == 1 and clicked == False: # type: ignore
                 clicked = True
                 answered = True
                 yanlışCevap += 1
