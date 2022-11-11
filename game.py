@@ -2,33 +2,33 @@ import pygame
 import pandas as pd
 import random
 
-def soruObj(x, y, rectNo):
+def soruObj(x, y, rectNo):    #get the placement arguments and blit the questionbox on the screen
     global answerBox_rect1
     global answerBox_rect2
     global answerBox_rect3
     global answerBox_rect4
     global answerBox_rectTrue
     boxsize = (225,150)
-    current = random.choice(şıklar)
-    if current == cevap:
+    current = random.choice(şıklar)             #choose a random choice
+    if current == cevap:                              #if true mark it as true and render it on the screen
         answerBox = pygame.image.load("QuizGame\photos\\answerbox.png").convert_alpha()
         answerBox = pygame.transform.scale(questionBox, boxsize)
         answerBox_rectTrue = answerBox.get_rect(topleft = (x,y))
         answerBox_rectText = answerBox.get_rect(topleft = (x+5,y+5))
         screen.blit(answerBox,answerBox_rectTrue)
 
-    else:
+    else:               #if its wrong create wrong variables and blit it
         answerBox = pygame.image.load("QuizGame\photos\\answerbox.png").convert_alpha()
-        answerBox = pygame.transform.scale(questionBox, boxsize)
-        globals()["answerBox_rect" + str(rectNo)] = answerBox.get_rect(topleft = (x,y))
+        answerBox = pygame.transform.scale(questionBox, boxsize)                                
+        globals()["answerBox_rect" + str(rectNo)] = answerBox.get_rect(topleft = (x,y))         #creating the differernt variables 
         answerBox_rectText = answerBox.get_rect(topleft = (x+5,y+5))
         screen.blit(answerBox,(x,y))
 
 
     drawText(screen, current, "#0D1821", answerBox_rectText, font, aa =True, bkg=None)
-    şıklar.remove(current)
+    şıklar.remove(current)        #remove that choice after blitting it on the screen
 
-def drawText(surface, text, color, rect, font, aa=False, bkg=None):
+def drawText(surface, text, color, rect, font, aa=False, bkg=None):   #make sure that the texts in the given rects dont overstep the boundaries of the rect
     rect = pygame.Rect(rect)
     y = rect.top
     lineSpacing = -2
@@ -66,10 +66,8 @@ def drawText(surface, text, color, rect, font, aa=False, bkg=None):
 
     return text
 
-def soruSorma(questionNumber):
-        df = pd.read_excel("QuizGame\soru\sorular.xlsx")       #pull from excel
-        sorulardf = df.sample(n = questionNumber)   #choose 10 random quesitons
-        # screen.blit(questionBox, (20,50))
+def soruSorma(questionNumber):   #get the questions and answers from the database and store them
+
 
         for i in range(questionNumber):   #ask amount of questions that was told to ask
             global questionBox
@@ -99,15 +97,30 @@ def soruSorma(questionNumber):
             soruObj(20,700,3)
             soruObj(275,700,4)
 
-questionNumber = 10 #default amount of questions to be asked
-WINDOW_WIDTH = 540
-WINDOW_HEIGHT = 960 #screen size
+def sonuçHesaplama():
+    sonuçSize = (400,500)
+    sonuç =doğruCevap - (yanlışCevap*0.25)
+    sonuçText = f"Sonucunuz {sonuç}"
+    sonuçKutusu = pygame.image.load("QuizGame\photos\\background.png").convert_alpha()
+    sonuçKutusu = pygame.transform.scale(sonuçKutusu, sonuçSize)
+    sonucKutusu_rect = sonuçKutusu.get_rect(center = (WINDOW_WIDTH/1.75,WINDOW_HEIGHT/1.5))
+    screen.blit(background, (0,0))
+    screen.blit(sonuçKutusu, sonucKutusu_rect)
+    drawText(screen, sonuçText, "#F0F4EF", sonucKutusu_rect, fontBigger, aa=True, bkg= None)
+
+    
+
+questionNumber = 10     #default amount of questions to be asked
+questionNumberMain = questionNumber+1
+WINDOW_WIDTH = 540      #screen width
+WINDOW_HEIGHT = 960     #screen height
 clicked = False
 questionBoxColor = "#F0F4EF"
 doğruCevap = 0
 yanlışCevap = 0
 pygame.font.init()
-font = pygame.font.Font("QuizGame\Fonts\Anonymous_Pro.ttf",20)
+font = pygame.font.Font("QuizGame\Fonts\Anonymous_Pro.ttf",20) #general font of the program
+fontBigger = pygame.font.Font("QuizGame\Fonts\Anonymous_Pro.ttf",50) 
 
 clock = pygame.time.Clock()
 start_btn = pygame.image.load("QuizGame\Buttons\StartTheGame.jpg")
@@ -118,14 +131,13 @@ pygame.init()
 screen = pygame.display.set_mode((WINDOW_WIDTH,WINDOW_HEIGHT)) 
 background = pygame.image.load("QuizGame\photos\\background.png").convert_alpha() 
 background = pygame.transform.scale(background, (WINDOW_WIDTH, WINDOW_HEIGHT)) #scaling backgorund to fill the screen
-screen.blit(background,(0,0))
-screen.blit(start_btn,start_btn_rect)
 pygame.font.init()
 mainmenu = True
 game = False
 answered = True
 doğruCevap = 0
-yanlışCevap = 0 
+yanlışCevap = 0
+sonuç = 0
 while True:
     if mainmenu == True:
         for event in pygame.event.get():
@@ -135,11 +147,15 @@ while True:
         pygame.event.pump()
         mouse_pos = pygame.mouse.get_pos()
 
+        screen.blit(background,(0,0))
+        screen.blit(start_btn,start_btn_rect)
 
         if start_btn_rect.collidepoint(mouse_pos) and pygame.mouse.get_pressed()[0] == 1 and clicked == False: #checks if you click the button
             clicked = True
             screen.blit(background,(0,0))
             mainmenu = False
+            df = pd.read_excel("QuizGame\soru\sorular.xlsx")       #pull from excel
+            sorulardf = df.sample(n = questionNumber)   #choose 10 random quesitons
             game = True
             if pygame.mouse.get_pressed()[0] == 0:
                 clicked = False
@@ -153,25 +169,43 @@ while True:
         pygame.event.pump()
         mouse_pos = pygame.mouse.get_pos()
 
-        if answered == False:
-            if answerBox_rectTrue.collidepoint(mouse_pos) and pygame.mouse.get_pressed()[0] == 1 and clicked == False:
-                clicked = True
-                answered = True
-                doğruCevap += 1
-                print(f"Doğru. Doğru sayınız: {doğruCevap}")
-            elif (answerBox_rect1.collidepoint(mouse_pos) or answerBox_rect2.collidepoint(mouse_pos) or answerBox_rect3.collidepoint(mouse_pos) or answerBox_rect4.collidepoint(mouse_pos)) and pygame.mouse.get_pressed()[0] == 1 and clicked == False: # type: ignore
-                clicked = True
-                answered = True
-                yanlışCevap += 1
-                print(f"Yanlış. Yanlış sayınız: {yanlışCevap}")
-            if pygame.mouse.get_pressed()[0] == 0:
-                clicked = False
-        if answered == True:
-            soruSorma(questionNumber)
-            if questionNumber > 0:
+        if questionNumber > 0:
+            if answered == False:
+                if answerBox_rectTrue.collidepoint(mouse_pos) and pygame.mouse.get_pressed()[0] == 1 and clicked == False:
+                    clicked = True
+                    answered = True
+                    doğruCevap += 1
+                elif (answerBox_rect1.collidepoint(mouse_pos) or answerBox_rect2.collidepoint(mouse_pos) or answerBox_rect3.collidepoint(mouse_pos) or answerBox_rect4.collidepoint(mouse_pos)) and pygame.mouse.get_pressed()[0] == 1 and clicked == False: # type: ignore
+                    clicked = True
+                    answered = True
+                    yanlışCevap += 1
+                if pygame.mouse.get_pressed()[0] == 0:
+                    clicked = False
+            if answered == True:
+                soruSorma(questionNumber)
                 questionNumber -=1
             answered = False
-
+        
+        elif questionNumber == 0:
+            sonuçHesaplama()
+            playAgainBox = pygame.image.load("QuizGame\photos\\answerbox.png").convert_alpha()
+            playAgainBox = pygame.transform.scale(playAgainBox, (375,100))
+            playAgain_rect = playAgainBox.get_rect(topleft = (100,600))
+            playAgain_rectText = playAgainBox.get_rect(topleft = (155,620))
+            screen.blit(playAgainBox,playAgain_rect)
+            drawText(screen, "Play Again", "#0D1821", playAgain_rectText, fontBigger, aa =True, bkg=None)
+            if playAgain_rect.collidepoint(mouse_pos) and pygame.mouse.get_pressed()[0] == 1 and clicked == False:
+                mainmenu = True
+                game = False
+                answered = True
+                doğruCevap = 0
+                yanlışCevap = 0
+                sonuç = 0
+                questionNumber = questionNumberMain 
+                clicked = True
+                clicked = False
+            if pygame.mouse.get_pressed()[0] == 0:
+                clicked = False
 
     pygame.display.update()
     clock.tick(60)
