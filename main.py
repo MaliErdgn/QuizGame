@@ -1,6 +1,8 @@
 import pygame
 import pandas as pd
 import random
+import time
+from pygame import mixer
 
 def soruObj(x, y, rectNo):    #get the placement arguments and blit the questionbox on the screen
     global answerBox_rect1
@@ -8,9 +10,24 @@ def soruObj(x, y, rectNo):    #get the placement arguments and blit the question
     global answerBox_rect3
     global answerBox_rect4
     global answerBox_rectTrue
+    global boxsize
+    global rightBox
+    global rightBox_rect
+    global rightBox_rectText
+    global wrongBox
+    global wrongBox_rect
+    global wrongBox_rectText
+
+
     boxsize = (225,150)
-    current = random.choice(şıklar)             #choose a random choice
+    current = random.choice(şıklar)            #choose a random choice
+
+
     if current == cevap:                              #if true mark it as true and render it on the screen
+        rightBox = pygame.image.load("QuizGame\photos\\rightanswer.png").convert_alpha()    
+        rightBox = pygame.transform.scale(rightBox,boxsize)
+        rightBox_rect = rightBox.get_rect(topleft = (x,y))
+        rightBox_rectText = rightBox.get_rect(topleft = (x+5,y+5))
         answerBox = pygame.image.load("QuizGame\photos\\answerbox.png").convert_alpha()
         answerBox = pygame.transform.scale(questionBox, boxsize)
         answerBox_rectTrue = answerBox.get_rect(topleft = (x,y))
@@ -18,6 +35,10 @@ def soruObj(x, y, rectNo):    #get the placement arguments and blit the question
         screen.blit(answerBox,answerBox_rectTrue)
 
     else:               #if its wrong create wrong variables and blit it
+        wrongBox = pygame.image.load("QuizGame\photos\wronganswer.png").convert_alpha()
+        wrongBox = pygame.transform.scale (wrongBox,boxsize) 
+        globals()["wrongBox_rect" + str(rectNo)] = wrongBox.get_rect(topleft = (x,y))
+        globals()["wrongBox_rectText" + str(rectNo)] = wrongBox.get_rect(topleft = (x+5,y+5))
         answerBox = pygame.image.load("QuizGame\photos\\answerbox.png").convert_alpha()
         answerBox = pygame.transform.scale(questionBox, boxsize)                                
         globals()["answerBox_rect" + str(rectNo)] = answerBox.get_rect(topleft = (x,y))         #creating the differernt variables 
@@ -97,7 +118,7 @@ def soruSorma(questionNumber):   #get the questions and answers from the databas
             soruObj(20,700,3)
             soruObj(275,700,4)
 
-def sonuçHesaplama():
+def sonuçHesaplama(): #calculating the marks of the player
     sonuçSize = (400,500)
     sonuç =doğruCevap - (yanlışCevap*0.25)
     sonuçText = f"Sonucunuz {sonuç}"
@@ -108,10 +129,8 @@ def sonuçHesaplama():
     screen.blit(sonuçKutusu, sonucKutusu_rect)
     drawText(screen, sonuçText, "#F0F4EF", sonucKutusu_rect, fontBigger, aa=True, bkg= None)
 
-    
-
-questionNumber = 10     #default amount of questions to be asked
-questionNumberMain = questionNumber+1
+questionNumber = 11     #default amount of questions to be asked + 1
+questionNumberMain = questionNumber
 WINDOW_WIDTH = 540      #screen width
 WINDOW_HEIGHT = 960     #screen height
 clicked = False
@@ -128,6 +147,7 @@ start_btn_rect = start_btn.get_rect(center = (WINDOW_WIDTH / 2,400))  #position 
 
  
 pygame.init()
+mixer.init()
 screen = pygame.display.set_mode((WINDOW_WIDTH,WINDOW_HEIGHT)) 
 background = pygame.image.load("QuizGame\photos\\background.png").convert_alpha() 
 background = pygame.transform.scale(background, (WINDOW_WIDTH, WINDOW_HEIGHT)) #scaling backgorund to fill the screen
@@ -138,6 +158,7 @@ answered = True
 doğruCevap = 0
 yanlışCevap = 0
 sonuç = 0
+volume = 0.2
 while True:
     if mainmenu == True:
         for event in pygame.event.get():
@@ -171,18 +192,22 @@ while True:
 
         if questionNumber > 0:
             if answered == False:
-                if answerBox_rectTrue.collidepoint(mouse_pos) and pygame.mouse.get_pressed()[0] == 1 and clicked == False:
+                if answerBox_rectTrue.collidepoint(mouse_pos) and pygame.mouse.get_pressed()[0] == 1 and clicked == False: #checks if you pressed the right option
+                    pygame.mixer.music.load("QuizGame\sounds\\rightanswer.mp3") #plays a ding sound
+                    pygame.mixer.music.play(1)
                     clicked = True
                     answered = True
-                    doğruCevap += 1
-                elif (answerBox_rect1.collidepoint(mouse_pos) or answerBox_rect2.collidepoint(mouse_pos) or answerBox_rect3.collidepoint(mouse_pos) or answerBox_rect4.collidepoint(mouse_pos)) and pygame.mouse.get_pressed()[0] == 1 and clicked == False: # type: ignore
+                    doğruCevap += 1 #adds +1 to right answers
+                elif (answerBox_rect1.collidepoint(mouse_pos) or answerBox_rect2.collidepoint(mouse_pos) or answerBox_rect3.collidepoint(mouse_pos) or answerBox_rect4.collidepoint(mouse_pos)) and pygame.mouse.get_pressed()[0] == 1 and clicked == False: # type: ignore #checks if you pressed one of the wrong options
+                    pygame.mixer.music.load("QuizGame\sounds\\wronganswer.mp3") #plays a buzzer sound
+                    pygame.mixer.music.play(1)
                     clicked = True
                     answered = True
-                    yanlışCevap += 1
+                    yanlışCevap += 1 #adds +1 to wrong answers
                 if pygame.mouse.get_pressed()[0] == 0:
                     clicked = False
             if answered == True:
-                soruSorma(questionNumber)
+                soruSorma(questionNumber) 
                 questionNumber -=1
             answered = False
         
@@ -195,17 +220,18 @@ while True:
             screen.blit(playAgainBox,playAgain_rect)
             drawText(screen, "Play Again", "#0D1821", playAgain_rectText, fontBigger, aa =True, bkg=None)
             if playAgain_rect.collidepoint(mouse_pos) and pygame.mouse.get_pressed()[0] == 1 and clicked == False:
-                mainmenu = True
-                game = False
-                answered = True
-                doğruCevap = 0
-                yanlışCevap = 0
-                sonuç = 0
-                questionNumber = questionNumberMain 
-                clicked = True
+                mainmenu = True #go back to the main menu
+                game = False     #stop the game
+                answered = True #reset the value
+                doğruCevap = 0 #reset
+                yanlışCevap = 0 #reset
+                sonuç = 0 #reset
+                clicked = True 
                 clicked = False
+                questionNumber = questionNumberMain #load back the amount of questions
             if pygame.mouse.get_pressed()[0] == 0:
                 clicked = False
 
+    mixer.music.set_volume(volume) #general volume of the game
     pygame.display.update()
-    clock.tick(60)
+    clock.tick(60) #fps of the game
