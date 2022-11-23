@@ -1,9 +1,12 @@
 import pygame
 import pandas as pd
 import random
-import time
 from pygame import mixer
 
+textAlignLeft = 0
+textAlignRight = 1
+textAlignCenter = 2
+textAlignBlock = 3
 class Boxes:
     def __init__(self,screenname,name,xloc,yloc,width,height,color,aa,bkg):
         self.screenname = screenname
@@ -15,10 +18,12 @@ class Boxes:
         self.color = color
         self.aa = aa
         self.bkg = bkg
+
     def createBox(self,screenname,text, textcolor, fontsize, center = True, outline=None):
         if outline:
             pygame.draw.rect(screenname,outline,(self.xloc-2,self.yloc-2,self.width-4,self.height-4),0)
         self.name = pygame.draw.rect(screenname,self.color,(self.xloc,self.yloc,self.width,self.height),0)
+        boxtext = pygame.draw.rect(screenname,self.color,(self.xloc+5,self.yloc+5,self.width-5,self.height-5),0)
         self.text = text
         match fontsize:
             case 1:
@@ -30,153 +35,160 @@ class Boxes:
         if text != "":
             if center:
                 textscreen = fontbox.render(self.text, 1, textcolor)
-                screen.blit(textscreen, (self.xloc + (self.width/2 - textscreen.get_width()/2), self.yloc + (self.height/2 - textscreen.get_height()/2)))
+                screen.blit(textscreen, ((self.xloc + (self.width/2 - textscreen.get_width()/2)), self.yloc + (self.height/2 - textscreen.get_height()/2)))
             else:
-                drawText(screenname, text, textcolor,self.name,fontbox,aa=self.aa, bkg=self.bkg)
-
+                drawText(screenname, text, textcolor, boxtext, fontbox, textAlignLeft, aa=self.aa, bkg=self.bkg)
 
     def isOver(self,pos):
         if pos[0] > self.xloc and pos[0] < self.xloc + self.width:
             if pos[1] > self.yloc and pos[1] < self.yloc + self.height:
                 return True
         return False
+    
+def askQuestions(questionNumber):
+    global answered,mainmenu,game,doğruCevap,yanlışCevap,sonuç,questions,rightAnswerBox,wrongAnswer1Box,wrongAnswer2Box,wrongAnswer3Box,soruNo
 
-def soruObj(x, y, rectNo):    #get the placement arguments and blit the questionbox on the screen
-    global answerBox_rect1
-    global answerBox_rect2
-    global answerBox_rect3
-    global answerBox_rect4
-    global answerBox_rectTrue
-    global boxsize
-    global rightBox
-    global rightBox_rect
-    global rightBox_rectText
-    global wrongBox
-    global wrongBox_rect
-    global wrongBox_rectText
+    choiceLocation = [(20,500),(275,500),(20,700),(275,700)]
+    choiceLocationBack = [(20,500),(275,500),(20,700),(275,700)]
 
+    question = sorulardf.iat[soruNo,0]
+    rightAnswer = sorulardf.iat[soruNo,1] 
+    wrongAnswer1 = sorulardf.iat[soruNo,2]
+    wrongAnswer2 = sorulardf.iat[soruNo,3]
+    wrongAnswer3 = sorulardf.iat[soruNo,4]   #take the question and the choices from df
 
-    boxsize = (225,150)
-    current = random.choice(şıklar)            #choose a random choice
+    print(questionNumber)
+    print(soruNo)
 
-
-    if current == cevap:                              #if true mark it as true and render it on the screen
-        rightBox = pygame.image.load("QuizGame\photos\\rightanswer.png").convert_alpha()    
-        rightBox = pygame.transform.scale(rightBox,boxsize)
-        rightBox_rect = rightBox.get_rect(topleft = (x,y))
-        rightBox_rectText = rightBox.get_rect(topleft = (x+5,y+5))
-        answerBox = pygame.image.load("QuizGame\photos\\answerbox.png").convert_alpha()
-        answerBox = pygame.transform.scale(questionBox, boxsize)
-        answerBox_rectTrue = answerBox.get_rect(topleft = (x,y))
-        answerBox_rectText = answerBox.get_rect(topleft = (x+5,y+5))
-        screen.blit(answerBox,answerBox_rectTrue)
-
-    else:               #if its wrong create wrong variables and blit it
-        wrongBox = pygame.image.load("QuizGame\photos\wronganswer.png").convert_alpha()
-        wrongBox = pygame.transform.scale (wrongBox,boxsize) 
-        globals()["wrongBox_rect" + str(rectNo)] = wrongBox.get_rect(topleft = (x,y))
-        globals()["wrongBox_rectText" + str(rectNo)] = wrongBox.get_rect(topleft = (x+5,y+5))
-        answerBox = pygame.image.load("QuizGame\photos\\answerbox.png").convert_alpha()
-        answerBox = pygame.transform.scale(questionBox, boxsize)                                
-        globals()["answerBox_rect" + str(rectNo)] = answerBox.get_rect(topleft = (x,y))         #creating the differernt variables 
-        answerBox_rectText = answerBox.get_rect(topleft = (x+5,y+5))
-        screen.blit(answerBox,(x,y))
+    currentRandom = random.sample(choiceLocation, 4) #randomize the places of the choices
+    
+    questionBox = Boxes(screen, "question", 20, 50, 500, 350, white, True, None)
+    questionBox.createBox(screen, question, dark, 1, None, None)
 
 
-    drawText(screen, current, "#0D1821", answerBox_rectText, font, aa =True, bkg=None)
-    şıklar.remove(current)        #remove that choice after blitting it on the screen
+    rightAnswerBox = Boxes(screen, "rightAnswerBox", currentRandom[0][0], currentRandom[0][1], 225,150, white, True, None)
+    rightAnswerBox.createBox(screen, rightAnswer, dark, 1, None, None)
 
-def drawText(surface, text, color, rect, font, aa=False, bkg=None):   #make sure that the texts in the given rects dont overstep the boundaries of the rect
-    rect = pygame.Rect(rect)
-    y = rect.top
+    wrongAnswer1Box = Boxes(screen, "wrongAnswer1Box", currentRandom[1][0], currentRandom[1][1], 225,150, white, True, None)
+    wrongAnswer1Box.createBox(screen, wrongAnswer1, dark, 1, None, None)
+
+    wrongAnswer2Box = Boxes(screen, " wrongAnswer2Box", currentRandom[2][0], currentRandom[2][1], 225,150, white, True, None)
+    wrongAnswer2Box.createBox(screen, wrongAnswer2, dark, 1, None, None)
+
+    wrongAnswer3Box = Boxes(screen, "wrongAnswer3Box", currentRandom[3][0], currentRandom[3][1], 225,150, white, True, None)
+    wrongAnswer3Box.createBox(screen, wrongAnswer3, dark, 1, None, None)
+
+    choiceLocation = choiceLocationBack #fill back the location of choices
+    
+    answered = False
+    if answered == False:
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if rightAnswerBox.isOver(pos):
+                pygame.mixer.music.load("QuizGame\sounds\\rightanswer.mp3") #plays a ding sound
+                pygame.mixer.music.play(1)
+                doğruCevap =+ 1
+                questionNumber =- 1
+                soruNo =+ 1
+                answered = True
+            if wrongAnswer1Box.isOver(pos) or wrongAnswer2Box.isOver(pos) or wrongAnswer3Box.isOver(pos):
+                pygame.mixer.music.load("QuizGame\sounds\wronganswer.mp3")
+                pygame.mixer.music.play(1)
+                yanlışCevap =+ 1
+                questionNumber =- 1
+                soruNo =+ 1
+                answered = True
+                
+    if questionNumber == 0:
+        sonuçHesaplama()
+        playAgainBox = Boxes(screen, "playAgainBox", 85.5, 600, 375, 100, white, True, None)
+        playAgainBox.createBox(screen, "Tekrar Oyna", dark, 2, True, None)
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if playAgainBox.isOver(pos):
+                mainmenu = True #go back to the main menu
+                game = False     #stop the game
+                answered = True #reset the value
+                doğruCevap = 0 #reset
+                yanlışCevap = 0 #reset
+                sonuç = 0 #reset
+                soruNo = 0 #reset
+                questionNumber = questionNumberMain
+
+
+
+def drawText(surface, text, color, rect, font, align=textAlignLeft, aa=False, bkg=None):
     lineSpacing = -2
+    spaceWidth, fontHeight = font.size(" ")[0], font.size("Tg")[1]
 
-    # get the height of the font
-    fontHeight = font.size("Tg")[1]
+    listOfWords = text.split(" ")
+    if bkg:
+        imageList = [font.render(word, 1, color, bkg) for word in listOfWords]
+        for image in imageList: image.set_colorkey(bkg)
+    else:
+        imageList = [font.render(word, aa, color) for word in listOfWords]
 
-    while text:
-        i = 1
-
-        # determine if the row of text will be outside our area
-        if y + fontHeight > rect.bottom:
-            break
-
-        # determine maximum width of line
-        while font.size(text[:i])[0] < rect.width and i < len(text):
-            i += 1
-
-        # if we've wrapped the text, then adjust the wrap to the last word      
-        if i < len(text): 
-            i = text.rfind(" ", 0, i) + 1
-
-        # render the line and blit it to the surface
-        if bkg:
-            image = font.render(text[:i], 1, color, bkg)
-            image.set_colorkey(bkg)
+    maxLen = rect[2]
+    lineLenList = [0]
+    lineList = [[]]
+    for image in imageList:
+        width = image.get_width()
+        lineLen = lineLenList[-1] + len(lineList[-1]) * spaceWidth + width
+        if len(lineList[-1]) == 0 or lineLen <= maxLen:
+            lineLenList[-1] += width
+            lineList[-1].append(image)
         else:
-            image = font.render(text[:i], aa, color)
+            lineLenList.append(width)
+            lineList.append([image])
 
-        surface.blit(image, (rect.left, y))
-        y += fontHeight + lineSpacing
+    lineBottom = rect[1]
+    lastLine = 0
+    for lineLen, lineImages in zip(lineLenList, lineList):
+        lineLeft = rect[0]
+        if align == textAlignRight:
+            lineLeft += + rect[2] - lineLen - spaceWidth * (len(lineImages)-1)
+        elif align == textAlignCenter:
+            lineLeft += (rect[2] - lineLen - spaceWidth * (len(lineImages)-1)) // 2
+        elif align == textAlignBlock and len(lineImages) > 1:
+            spaceWidth = (rect[2] - lineLen) // (len(lineImages)-1)
+        if lineBottom + fontHeight > rect[1] + rect[3]:
+            break
+        lastLine += 1
+        for i, image in enumerate(lineImages):
+            x, y = lineLeft + i*spaceWidth, lineBottom
+            surface.blit(image, (round(x), y))
+            lineLeft += image.get_width() 
+        lineBottom += fontHeight + lineSpacing
 
-        # remove the text we just blitted
-        text = text[i:]
-
-    return text
-
-def soruSorma(questionNumber):   #get the questions and answers from the database and store them
-
-
-        for i in range(questionNumber):   #ask amount of questions that was told to ask
-            global questionBox
-            global questionBox_rect
-            global questionBox_rectText
-            global cevap
-            global soru
-            global şıklar
-
-            soru = sorulardf.iat[i,0]
-            cevap = sorulardf.iat[i,1] 
-            yanlışCevap1 = sorulardf.iat[i,2]
-            yanlışCevap2 = sorulardf.iat[i,3]
-            yanlışCevap3 = sorulardf.iat[i,4]   #take the question and the choices from df
-
-            questionBox = pygame.image.load("QuizGame\photos\\answerbox.png").convert_alpha() #background of the question
-            questionBox = pygame.transform.scale(questionBox, (500,350)) #resizing the bg
-            questionBox_rect = questionBox.get_rect(topleft = (20,50)) #getting the rect
-            questionBox_rectText = questionBox.get_rect(topleft = (25,55)) #rect of the text
-            screen.blit(questionBox,questionBox_rect) #blitting the said rect
-
-            drawText(screen, soru, "#0D1821", questionBox_rectText, font, aa =True, bkg=None) #writing the question in screen
-
-            şıklar = [cevap,yanlışCevap1,yanlışCevap2,yanlışCevap3]  #put choices in a list for randomness
-            soruObj(20,500,1)
-            soruObj(275,500,2)
-            soruObj(20,700,3)
-            soruObj(275,700,4)
-
+    if lastLine < len(lineList):
+        drawWords = sum([len(lineList[i]) for i in range(lastLine)])
+        remainingText = ""
+        for text in listOfWords[drawWords:]: remainingText += text + " "
+        return remainingText
+    return ""
+    
 def sonuçHesaplama(): #calculating the marks of the player
     sonuç = doğruCevap-yanlışCevap*0.25
     sonuçText = f"Sonucunuz {sonuç}"
     screen.blit(background, (0,0))
-    resultBox = Boxes(screen, "resultBox", 100, 300, 375, 100, dark, True, None)
+    resultBox = Boxes(screen, "resultBox", 85.5, 300, 375, 100, dark, True, None)
     resultBox.createBox(screen,sonuçText, white, 2, True, outline=None)
 
 
+#region variables and initialization
 
-questionNumber = 11     #default amount of questions to be asked + 1
+questionNumber = 10    #default amount of questions to be asked
 questionNumberMain = questionNumber
 WINDOW_WIDTH = 540      #screen width
 WINDOW_HEIGHT = 960     #screen height
 clicked = False
 doğruCevap = 0
 yanlışCevap = 0
+soruNo = 0
+ongoing = True
 dark,red,green,white,silver = "#0D1821","#B3001B","#058C42","#F0F4EF","#ADA8B6"
 colors = [dark,red,green,white,silver]
 pygame.font.init()
 font = pygame.font.Font("QuizGame\Fonts\Anonymous_Pro.ttf",20) 
 clock = pygame.time.Clock()
-
  
 pygame.init()
 mixer.init()
@@ -190,6 +202,7 @@ game = False
 answered = True
 sonuç = 0
 volume = 0.2
+#endregion
 while True:
     if mainmenu == True:
         for event in pygame.event.get():
@@ -215,63 +228,12 @@ while True:
             if event.type == pygame.QUIT: #close when you press the x button
                 pygame.quit()
                 exit()
+        if questionNumber > 0:
+            askQuestions(questionNumber)
 
 
         pygame.event.pump()
         pos = pygame.mouse.get_pos()
-
-        if questionNumber > 0:
-            if answered == False:
-                if answerBox_rectTrue.collidepoint(pos) and pygame.mouse.get_pressed()[0] == 1 and clicked == False: #checks if you pressed the right option
-                    pygame.mixer.music.load("QuizGame\sounds\\rightanswer.mp3") #plays a ding sound
-                    pygame.mixer.music.play(1)
-                    clicked = True
-                    answered = True
-                    doğruCevap += 1 #adds +1 to right answers
-                elif (answerBox_rect1.collidepoint(pos) or answerBox_rect2.collidepoint(pos) or answerBox_rect3.collidepoint(pos) or answerBox_rect4.collidepoint(pos)) and pygame.mouse.get_pressed()[0] == 1 and clicked == False: # type: ignore #checks if you pressed one of the wrong options
-                    pygame.mixer.music.load("QuizGame\sounds\\wronganswer.mp3") #plays a buzzer sound
-                    pygame.mixer.music.play(1)
-                    clicked = True
-                    answered = True
-                    yanlışCevap += 1 #adds +1 to wrong answers
-                if pygame.mouse.get_pressed()[0] == 0:
-                    clicked = False
-            if answered == True:
-                soruSorma(questionNumber) 
-                questionNumber -=1
-            answered = False
-        
-        elif questionNumber == 0:
-            sonuçHesaplama()
-            # playAgainBox = pygame.image.load("QuizGame\photos\\answerbox.png").convert_alpha()
-            # playAgainBox = pygame.transform.scale(playAgainBox, (375,100))
-            # playAgain_rect = playAgainBox.get_rect(topleft = (100,600))
-            # playAgain_rectText = playAgainBox.get_rect(topleft = (155,620))
-            # screen.blit(playAgainBox,playAgain_rect)
-            # drawText(screen, "Play Again", "#0D1821", playAgain_rectText, font, aa =True, bkg=None)
-            playAgainBox = Boxes(screen, "playAgainBox", 100, 600, 375, 100, white, True, None)
-            playAgainBox.createBox(screen, "Tekrar Oyna", dark, 2, True, None)
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if playAgainBox.isOver(pos):
-                    mainmenu = True #go back to the main menu
-                    game = False     #stop the game
-                    answered = True #reset the value
-                    doğruCevap = 0 #reset
-                    yanlışCevap = 0 #reset
-                    sonuç = 0 #reset
-                    questionNumber = questionNumberMain
-                # if playAgain_rect.collidepoint(pos) and pygame.mouse.get_pressed()[0] == 1 and clicked == False:
-                # mainmenu = True #go back to the main menu
-                # game = False     #stop the game
-                # answered = True #reset the value
-                # doğruCevap = 0 #reset
-                # yanlışCevap = 0 #reset
-                # sonuç = 0 #reset
-                # clicked = True 
-                # clicked = False
-                # questionNumber = questionNumberMain #load back the amount of questions
-            if pygame.mouse.get_pressed()[0] == 0:
-                clicked = False
 
     mixer.music.set_volume(volume) #general volume of the game
     pygame.display.update()
